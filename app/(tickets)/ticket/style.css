@@ -1,0 +1,59 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+
+.ticket {
+    font-size: 16px;
+    font-family: "Inter", sans-serif;
+    width: 302.4px;
+    max-width: 302.4px;
+}
+
+.tr,
+.table {
+    width: 100%;
+    border-top: 1px solid black;
+    border-collapse: collapse;
+}
+
+td.producto,
+th.producto {
+    width: 50%; /* Ajustado para ocupar la mitad del ancho */
+}
+
+td.cantidad,
+th.cantidad {
+    width: 25%; /* Ajustado para ocupar un cuarto del ancho */
+    text-align: center;
+}
+
+td.precio,
+th.precio {
+    width: 25%; /* Ajustado para ocupar un cuarto del ancho */
+    font-size: 20px !important;
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+}
+
+.centrado {
+    text-align: center;
+    align-content: center;
+}
+
+img {
+    max-width: 100%;
+    width: 100%; /* Asegura que las imágenes también se ajusten al ancho */
+}
+
+@media print {
+    .oculto-impresion,
+    .oculto-impresion * {
+        display: none !important;
+    }
+}
+
+.logo {
+    width: 160px;
+    height: 160px;
+    display: block;
+    margin: 0 auto;
+}
