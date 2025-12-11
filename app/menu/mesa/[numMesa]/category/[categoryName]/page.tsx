@@ -42,6 +42,10 @@ const MenuPage = () => {
     const name = useMenuSearch((state) => state.name);
     const setName = useMenuSearch((state) => state.setName);
 
+    // 🔗 Base del backend (MISMA LÓGICA QUE EN LA OTRA PÁGINA)
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+    const backendBase = apiBase.replace(/\/api\/?$/, ""); // p.ej. http://31.97.211.22:4000
+
     useEffect(() => {
         const getCategories = async () => {
             const response = await getCategoryActives();
@@ -214,24 +218,26 @@ const MenuPage = () => {
                                     <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                                         <Image
                                             src={`/logos/icon_${category.name
-                                                    .toLowerCase()
-                                                    .split(" ")[0]
+                                                .toLowerCase()
+                                                .split(" ")[0]
                                                 }.svg`}
                                             alt={category.name}
                                             width={50}
                                             height={50}
                                             className="max-w-full max-h-full object-contain"
                                             onError={(e) => {
+                                                // @ts-ignore - para evitar bronca con tipos de Next
                                                 e.currentTarget.src = "/logos/icon_noencontrado.svg";
+                                                // @ts-ignore
                                                 e.currentTarget.onerror = null;
                                             }}
                                         />
                                     </div>
                                     <p
                                         className={`text-center font-black text-xl ${categoryName ===
-                                                category.name.toLowerCase()
-                                                ? "text-amber-600"
-                                                : "text-black"
+                                            category.name.toLowerCase()
+                                            ? "text-amber-600"
+                                            : "text-black"
                                             } flex-grow`}>
                                         {category.name}
                                     </p>
@@ -241,6 +247,7 @@ const MenuPage = () => {
                     </div>
                 </div>
             </div>
+
             {/* Productos */}
             <div className="overflow-y-auto h-[calc(100vh-120px)] mt-10">
                 <h1 className="text-left text-xl font-black mb-10 text-black uppercase">
@@ -248,39 +255,53 @@ const MenuPage = () => {
                 </h1>
                 {(products.products ?? []).length > 0 ? (
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
-                        {products.products?.map((product, index) => (
-                            <button
-                                key={index}
-                                className="bg-white dark:bg-gray-900 p-4 rounded-md hover:bg-amber-200 dark:hover:bg-gray-700 flex items-center gap-2 flex-col"
-                                onClick={() =>
-                                    addItem({
-                                        id: product.id,
-                                        name: product.name,
-                                        price: product.price,
-                                        quantity: 1,
-                                        categoryId: product.categoryId,
-                                        createdAt: product.createdAt,
-                                        updatedAt: product.updatedAt,
-                                        status: product.status,
-                                    })
-                                }>
-                                <Image
-                                    src={product.imageUrl ? product.imageUrl : "/images/comida.webp"}
-                                    alt={product.name}
-                                    width={100}
-                                    height={100}
-                                    className="rounded w-14 h-14 object-cover"
-                                />
-                                <div>
-                                    <p className="text-center font-black text-xl uppercase text-zinc-950">
-                                        {product.name}
-                                    </p>
-                                    <p className="text-center text-2xl text-primary font-black">
-                                        {FormatAmount(product.price)}
-                                    </p>
-                                </div>
-                            </button>
-                        ))}
+                        {products.products?.map((product, index) => {
+                            // 🔥 MISMA LÓGICA DE LA PÁGINA DONDE SÍ FUNCIONA
+                            let imageSrc = "/images/comida.webp";
+
+                            if (product.imageUrl) {
+                                if (product.imageUrl.startsWith("http")) {
+                                    imageSrc = product.imageUrl;
+                                } else {
+                                    imageSrc = `${backendBase}${product.imageUrl}`;
+                                }
+                            }
+
+                            return (
+                                <button
+                                    key={index}
+                                    className="bg-white dark:bg-gray-900 p-4 rounded-md hover:bg-amber-200 dark:hover:bg-gray-700 flex items-center gap-2 flex-col"
+                                    onClick={() =>
+                                        addItem({
+                                            id: product.id,
+                                            name: product.name,
+                                            price: product.price,
+                                            quantity: 1,
+                                            categoryId: product.categoryId,
+                                            createdAt: product.createdAt,
+                                            updatedAt: product.updatedAt,
+                                            status: product.status,
+                                        })
+                                    }>
+                                    <Image
+                                        src={imageSrc}
+                                        alt={product.name}
+                                        width={100}
+                                        height={100}
+                                        className="rounded w-14 h-14 object-cover"
+                                        unoptimized // 👈 evita /_next/image y usa la URL directa
+                                    />
+                                    <div>
+                                        <p className="text-center font-black text-xl uppercase text-zinc-950">
+                                            {product.name}
+                                        </p>
+                                        <p className="text-center text-2xl text-primary font-black">
+                                            {FormatAmount(product.price)}
+                                        </p>
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="text-center">
@@ -288,6 +309,7 @@ const MenuPage = () => {
                     </div>
                 )}
             </div>
+
             {/* Menu Carrito / Total */}
             <div className="overflow-y-auto h-[calc(100vh-120px)]">
                 {order.length > 0 ? (

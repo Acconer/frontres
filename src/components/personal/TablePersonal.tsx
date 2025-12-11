@@ -21,6 +21,7 @@ const TablePersonal = () => {
     const setEmail = useAuth(state => state.setEmail);
     const setPermission = useAuth(state => state.setPermission);
     const setModal = useGlobal(state => state.setModal);
+    const modalStatus = useGlobal(state => state.modal.status);
 
     useEffect(() => {
         const get = async () => {
@@ -29,7 +30,7 @@ const TablePersonal = () => {
             setUsers(users);
         };
         get();
-    }, []);
+    }, [modalStatus]);
 
     return (
         <>
@@ -82,11 +83,10 @@ const TablePersonal = () => {
                                         users.map((user) => (
                                             <tr
                                                 key={user.id}
-                                                className={`${
-                                                    users.indexOf(user) % 2 === 0
+                                                className={`${users.indexOf(user) % 2 === 0
                                                         ? "bg-white dark:bg-gray-800"
                                                         : "bg-gray-100 dark:bg-gray-900"
-                                                } border-b dark:border-gray-700`}>
+                                                    } border-b dark:border-gray-700`}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700">
                                                     {user.id}
                                                 </td>
@@ -110,11 +110,11 @@ const TablePersonal = () => {
                                                         type="button"
                                                         className="btn bg-primary text-white flex-1"
                                                         onClick={() => {
-                                                          setModal({ status: true, element: <FormEditPersonal /> })
-                                                          setName(user.name)
-                                                          setEmail(user.email)
-                                                          setPermission(user.permission)
-                                                          setId(user.id)
+                                                            setModal({ status: true, element: <FormEditPersonal /> })
+                                                            setName(user.name)
+                                                            setEmail(user.email)
+                                                            setPermission(user.permission)
+                                                            setId(user.id)
                                                         }}>
                                                         Editar
                                                     </button>
@@ -122,10 +122,12 @@ const TablePersonal = () => {
                                                         type="button"
                                                         className="btn bg-danger text-white flex-1"
                                                         onClick={
-                                                          () => {setModal({ status: true, element: <ModalDelete /> })
-                                                          setId(user.id)} 
+                                                            () => {
+                                                                setModal({ status: true, element: <ModalDelete /> })
+                                                                setId(user.id)
+                                                            }
                                                         }
-                                                        >
+                                                    >
                                                         Eliminar
                                                     </button>
                                                 </td>

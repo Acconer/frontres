@@ -3,12 +3,14 @@
 "use client";
 
 import PageBreadcrumb from "@/src/components/Global/PageBreadcrumb";
-import React from "react";
+import React, { useEffect } from "react";
+import { io, Socket } from "socket.io-client";
 import { useOrder } from "@/src/store/order/store";
-import { useEffect } from "react";
 import { getOrders } from "@/src/api/order/index";
 import CardOrder from "@/src/components/orders/CardOrder";
 import { useGlobal } from "@/src/store/global/store";
+
+let socket: Socket | null = null; // una sola instancia
 
 const AllOrders = () => {
     const orders = useOrder((state) => state.orders);
@@ -16,12 +18,56 @@ const AllOrders = () => {
     const modal = useGlobal((state) => state.modal);
 
     useEffect(() => {
-        const getOrdenes = async () => {
+        const cargarOrdenesIniciales = async () => {
             const response = await getOrders("pending");
             setOrders(response.orders);
         };
-        getOrdenes();
-    }, []);
+
+        cargarOrdenesIniciales();
+
+        if (!socket) {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
+            const socketUrl = apiUrl.replace(/\/api\/?$/, "");
+            socket = io(socketUrl, { transports: ["websocket"] });
+        }
+
+        console.log("🔌 Escuchando socket: order:created, order:updated, order:finished");
+
+        const handleNewOrder = (newOrder: any) => {
+            console.log("📩 Nueva orden vía socket:", newOrder);
+            setOrders((prev: any[]) => [newOrder, ...prev]);
+        };
+
+        const handleOrderUpdated = (updatedOrder: any) => {
+            console.log("♻️ Orden actualizada vía socket:", updatedOrder);
+            setOrders((prev: any[]) =>
+                prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+            );
+        };
+
+        // ⬇️⬇️ NUEVO: FINALIZAR ORDEN
+        const handleOrderFinished = (finishedOrder: any) => {
+            console.log("🏁 Orden finalizada vía socket:", finishedOrder);
+            setOrders((prev: any[]) =>
+                prev.map((o) => (o.id === finishedOrder.id ? finishedOrder : o))
+            );
+        };
+        // ⬆️⬆️ NUEVO
+
+        socket.on("order:created", handleNewOrder);
+        socket.on("order:updated", handleOrderUpdated);
+        socket.on("order:finished", handleOrderFinished);
+
+        return () => {
+            if (socket) {
+                socket.off("order:created", handleNewOrder);
+                socket.off("order:updated", handleOrderUpdated);
+                socket.off("order:finished", handleOrderFinished);
+            }
+        };
+    }, [setOrders]);
+
+
 
     return (
         <>
@@ -30,7 +76,7 @@ const AllOrders = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {orders &&
                     orders.length > 0 &&
-                    orders.map((order, index) => (
+                    orders.map((order) => (
                         <CardOrder key={order.id} product={order} />
                     ))}
             </div>
